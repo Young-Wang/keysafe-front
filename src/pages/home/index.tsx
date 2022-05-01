@@ -1,31 +1,48 @@
+import Button from "components/button";
 import { ROUTES } from "constants/routes";
+import useStores from "hooks/use-stores";
+import { isEmpty } from "lodash-es";
+import { observer } from "mobx-react-lite";
 import React from "react";
-import { Link } from "react-router-dom";
+import { useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 
-const Home = () => {
+const Home = observer(() => {
+  const {
+    accountStore: { userInfo, accountChains },
+  } = useStores();
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    if (!userInfo.email) {
+      navigate(ROUTES.LOGIN_HOME);
+    } else if (isEmpty(accountChains)) {
+      navigate(ROUTES.REGISTER);
+    }
+  }, []);
+
   return (
-    <div>
-      <div className="flex flex-col items-start mt-40 ml-20">
-        <h2 className="text-6xl font-bold">Keysafe</h2>
-        <p className="mt-4 ">
-          The decentralized key custody network, powered by Keysafe Protocol.
-        </p>
-        <div className="flex flex-col mt-10">
-          <Link
-            to={ROUTES.LOGIN}
-            className="rounded-full w-28 py-1 bg-green-500 text-center text-white font-bold"
+    <section className="flex flex-col items-center ks-full-container justify-center">
+      <h2 className="font-bold text-6xl ">HOME</h2>
+      <p className="mt-4 text-4xl text-center w-3/5 text-zinc-400">
+        Your account has been safely stored by Keysafe, you can choose to
+        restore your account or initiate a transfer at any time.
+      </p>
+      {!isEmpty(accountChains) && (
+        <footer className="flex items-center justify-center mt-20">
+          <Button type="primary" onClick={() => navigate(ROUTES.RECOVER_KEYS)}>
+            Recover
+          </Button>
+          <Button
+            type="primary"
+            onClick={() => navigate(ROUTES.TRANSFER)}
+            className="ml-32"
           >
-            LOG IN
-          </Link>
-          <Link
-            to={ROUTES.SIGN_UP}
-            className="rounded-full w-28 py-1 bg-yellow-500 text-center text-white font-bold mt-2"
-          >
-            SIGN UP
-          </Link>
-        </div>
-      </div>
-    </div>
+            Transfer
+          </Button>
+        </footer>
+      )}
+    </section>
   );
-};
+});
 export default Home;

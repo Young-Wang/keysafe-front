@@ -1,18 +1,34 @@
 import Button from "components/button";
 import Input from "components/input";
 import { ROUTES } from "constants/routes";
+import useStores from "hooks/use-stores";
+import { observer } from "mobx-react-lite";
 import Switch from "rc-switch";
 import React from "react";
-import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { checkEmail } from "utils";
 
-const DelegateSetting = () => {
-  const [delegate, setDelegate] = useState(false);
+const DelegateSetting = observer(() => {
+  const {
+    registerStore,
+    registerStore: { delegateInfo },
+  } = useStores();
   const navigate = useNavigate();
+
+  const onDelegateClick = async () => {
+    navigate(ROUTES.SET_CONDITIONS);
+  };
+
+  const onDelegateInfoUpdate = (key: string, value: unknown) => {
+    registerStore.updateDelegateInfo({
+      ...delegateInfo,
+      [key]: value,
+    });
+  };
 
   return (
     <section className="p-4">
-      <h2 className="text-2xl font-bold" style={{ color: "#2563eb" }}>
+      <h2 className="text-2xl font-bold" style={{ color: "#41B06E" }}>
         Delegate Settings
       </h2>
       <main className="mt-4">
@@ -24,12 +40,12 @@ const DelegateSetting = () => {
               access your registered private keys (for recovery or/and sig).
             </span>
             <Switch
-              checked={delegate}
-              onChange={(checked) => setDelegate(checked)}
+              checked={delegateInfo.delegate}
+              onChange={(checked) => onDelegateInfoUpdate("delegate", checked)}
             />
           </div>
         </div>
-        {delegate && (
+        {delegateInfo.delegate && (
           <div className="">
             <div className="text-lg font-medium">Set Your Delegate</div>
             <div className="text-gray-500">
@@ -38,20 +54,25 @@ const DelegateSetting = () => {
               registered private keys when he or she is authed to Keysafe.
             </div>
             <div className="flex items-center mt-2">
-              <Input className="w-80" />
-              <Button className="ml-4" type="primary">
-                CONFIRM
-              </Button>
+              <Input
+                className="w-80"
+                value={delegateInfo.to}
+                onChange={(e) => onDelegateInfoUpdate("to", e.target.value)}
+              />
             </div>
           </div>
         )}
       </main>
       <footer className="mt-20">
-        <Button type="primary" onClick={() => navigate(ROUTES.SET_CONDITIONS)}>
+        <Button
+          type="primary"
+          onClick={onDelegateClick}
+          disable={delegateInfo.delegate && !checkEmail(delegateInfo.to)}
+        >
           CONTINUE
         </Button>
       </footer>
     </section>
   );
-};
+});
 export default DelegateSetting;

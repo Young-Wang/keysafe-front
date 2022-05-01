@@ -7,9 +7,14 @@ import { useCountDown } from "ahooks";
 import dayjs from "dayjs";
 import Input from "components/input";
 import { ROUTES } from "constants/routes";
-import number from "utils/number";
 import Button from "components/button";
-import { formatCountDown } from "utils";
+import { checkEmail, formatCountDown } from "utils";
+import accountServices from "stores/account/services";
+import ls from "utils/ls";
+import { LOCAL_STORAGE_KEY_ACCOUNT } from "constants/index";
+import { observer } from "mobx-react-lite";
+import useStores from "hooks/use-stores";
+import { encrypt2 } from "utils/secure";
 
 // 输入邮箱
 const StepEmail: FC<{
@@ -59,16 +64,27 @@ const StepCode: FC<{
   );
 };
 
-const Login = () => {
+const Login = observer(() => {
+  const { accountStore } = useStores();
   const navigate = useNavigate();
   const [step, setStep] = useState(1);
   const [email, setEmail] = useState("");
   const [code, setCode] = useState("");
 
-  const onContinueClick = () => {
+  const onContinueClick = async () => {
     if (step === 1) {
+      await accountServices.auth({ account: email });
       setStep(2);
     } else {
+      await accountServices.authConfirm({
+        account: email,
+        mail: email,
+        cipher_code: encrypt2(code),
+      });
+      ls.set(LOCAL_STORAGE_KEY_ACCOUNT, email);
+      accountStore.updateUserInfo({
+        email: email,
+      });
       navigate(ROUTES.HOME);
     }
   };
@@ -94,16 +110,21 @@ const Login = () => {
             className="mr-4"
             type="primary"
             disable={
-              (step === 1 && isEmpty(email)) || (step === 2 && isEmpty(code))
+              (step === 1 && (isEmpty(email) || !checkEmail(email))) ||
+              (step === 2 && isEmpty(code))
             }
             onClick={onContinueClick}
           >
             CONTINUE
           </Button>
-          <Button onClick={() => navigate(ROUTES.HOME)}>CANCEL</Button>
+          <Button
+            onClick={() => (step === 2 ? setStep(1) : navigate(ROUTES.HOME))}
+          >
+            CANCEL
+          </Button>
         </footer>
       </div>
     </section>
   );
-};
+});
 export default Login;

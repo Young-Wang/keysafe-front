@@ -21,7 +21,7 @@ const RegisterKeys = observer(() => {
 
   return (
     <section className="p-4">
-      <h2 className="text-2xl font-bold" style={{ color: "#2563eb" }}>
+      <h2 className="text-2xl font-bold" style={{ color: "#41B06E" }}>
         Input Private Keys
       </h2>
       <div className="mt-8">
@@ -32,7 +32,7 @@ const RegisterKeys = observer(() => {
               return (
                 <div key={index} className="flex mb-2 items-center">
                   <span className="w-10">#{index + 1}</span>
-                  <span className="ml-2 p-1 border bg-gray-300 w-96">
+                  <span className="ml-2 p-1 border bg-gray-300 w-96 text-ellipsis overflow-hidden">
                     {privateKey.key}
                   </span>
                   <span className="ml-2 w-32 p-1 border bg-gray-300">
@@ -54,6 +54,7 @@ const RegisterKeys = observer(() => {
         <Button
           type="primary"
           onClick={() => navigate(ROUTES.DELEGATE_SETTINGS)}
+          disable={privateKeys.length === 0}
         >
           CONTINUE
         </Button>

@@ -5,12 +5,15 @@ import Dialog from "rc-dialog";
 import Button from "components/button";
 import plusIcon from "assets/imgs/plus-circle-fill.svg";
 import { PrivateKey } from "stores/register/types";
-import { useContext } from "react";
 import useStores from "hooks/use-stores";
 import { observer } from "mobx-react-lite";
+import { ChainType } from "constants/enum";
+import { isEmpty } from "lodash-es";
+import { checkEthKey } from "utils/eth";
+import { useMemo } from "react";
 
 const INIT_PRIVATEKEY: PrivateKey = {
-  type: "eth",
+  type: ChainType.Eth,
   key: "",
 };
 const AddKey = observer(() => {
@@ -34,6 +37,11 @@ const AddKey = observer(() => {
     setVisible(false);
   };
 
+  const valid = useMemo(() => {
+    if (privateKey.key && !checkEthKey(privateKey.key)) return false;
+    return true;
+  }, [privateKey]);
+
   return (
     <>
       <Dialog visible={visible} onClose={() => setVisible(false)}>
@@ -41,12 +49,15 @@ const AddKey = observer(() => {
           <p className="font-bold mb-2">Input a private key</p>
           <div className="mb-2">
             <select
-              className="border border-gray-700 rounded w-full px-2 py-1"
+              className="block flex-1 w-full"
               value={privateKey.type}
               onChange={(e) => onValueChange("type", e.target.value)}
             >
-              <option value="eth">eth</option>
-              <option value="btc">btc</option>
+              {Object.values(ChainType).map((type) => (
+                <option value={type} key={type}>
+                  {type}
+                </option>
+              ))}
             </select>
           </div>
           <div>
@@ -54,9 +65,19 @@ const AddKey = observer(() => {
               value={privateKey.key}
               onChange={(e) => onValueChange("key", e.target.value)}
             />
+            {!valid && (
+              <p className="mt-2 text-sm text-orange-500">
+                Please input valid private key
+              </p>
+            )}
           </div>
           <footer className="flex justify-center mt-4">
-            <Button type="primary" className="mr-2" onClick={onConfirmClick}>
+            <Button
+              type="primary"
+              className="mr-2"
+              onClick={onConfirmClick}
+              disable={isEmpty(privateKey.key) || !valid}
+            >
               CONFIRM
             </Button>
             <Button onClick={() => setVisible(false)}>CANCEL</Button>
